@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { MenuCategory, MenuItem, StoreSettings } from '../types';
-import { Download, Upload, FileSpreadsheet, Trash2, AlertCircle, RefreshCw, Mail, Save, Database, Shield, Eye, EyeOff } from 'lucide-react';
+import { Download, Upload, FileSpreadsheet, Trash2, AlertCircle, RefreshCw, Mail, Save, Database, Shield, Eye, EyeOff, MessageCircle } from 'lucide-react';
 
 interface SettingsViewProps {
   menu: MenuCategory[];
@@ -217,6 +217,31 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ menu, settings, onUp
                 />
               </div>
 
+              {/* Line Notify Settings */}
+              <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
+                    <MessageCircle size={16} className="text-green-600" /> Line Notify 通知
+                  </label>
+                  <input 
+                    type="checkbox" 
+                    checked={localSettings.enableLineNotify}
+                    onChange={e => setLocalSettings({...localSettings, enableLineNotify: e.target.checked})}
+                    className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
+                  />
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Line Notify Token"
+                  value={localSettings.lineToken}
+                  disabled={!localSettings.enableLineNotify}
+                  onChange={e => setLocalSettings({...localSettings, lineToken: e.target.value})}
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
+                />
+                <p className="text-xs text-gray-500 mt-1">啟用後，每筆新訂單將透過 Line Notify 通知店家。</p>
+              </div>
+
+              {/* Email Settings */}
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-bold text-gray-800 flex items-center gap-2">
@@ -240,6 +265,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ menu, settings, onUp
                 <p className="text-xs text-gray-500 mt-1">啟用後，每筆新訂單將寄送至此信箱。</p>
               </div>
 
+              {/* Google Sheet Settings */}
               <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                 <div className="flex items-center justify-between mb-2">
                   <label className="text-sm font-bold text-gray-800 flex items-center gap-2">

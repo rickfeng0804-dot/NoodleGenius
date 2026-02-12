@@ -4,7 +4,7 @@ import { Plus, Minus, ShoppingBag, X, Check, Star, MessageCircle, Mail } from 'l
 
 interface OrderingViewProps {
   menu: MenuCategory[];
-  onPlaceOrder: (items: CartItem[], customerName: string, tableNumber: string, contactLineId: string, contactEmail: string) => void;
+  onPlaceOrder: (items: CartItem[], tableNumber: string) => void;
 }
 
 export const OrderingView: React.FC<OrderingViewProps> = ({ menu, onPlaceOrder }) => {
@@ -14,10 +14,7 @@ export const OrderingView: React.FC<OrderingViewProps> = ({ menu, onPlaceOrder }
   
   // Checkout Form State
   const [showCheckout, setShowCheckout] = useState(false);
-  const [customerName, setCustomerName] = useState('');
   const [tableNumber, setTableNumber] = useState('');
-  const [lineId, setLineId] = useState('');
-  const [email, setEmail] = useState('');
 
   const addToCart = (item: MenuItem) => {
     setCart(prev => {
@@ -49,7 +46,7 @@ export const OrderingView: React.FC<OrderingViewProps> = ({ menu, onPlaceOrder }
     e.preventDefault();
     if (cart.length === 0) return;
     
-    onPlaceOrder(cart, customerName, tableNumber, lineId, email);
+    onPlaceOrder(cart, tableNumber);
     setCart([]);
     setShowCheckout(false);
     setIsCartOpen(false);
@@ -90,59 +87,14 @@ export const OrderingView: React.FC<OrderingViewProps> = ({ menu, onPlaceOrder }
                 type="text" 
                 value={tableNumber}
                 onChange={e => setTableNumber(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="例如: A1"
+                className="w-full p-4 border-2 border-orange-200 rounded-xl focus:border-orange-500 focus:ring-0 outline-none text-xl font-bold text-center placeholder-gray-300"
+                placeholder="請輸入桌號 (例如: 1)"
               />
             </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">您的稱呼</label>
-              <input 
-                required
-                type="text" 
-                value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="王小明"
-              />
-            </div>
-            
-            <div className="pt-4 border-t border-gray-100">
-              <h4 className="font-medium text-gray-900 mb-3 flex items-center gap-2">
-                <span className="w-1 h-6 bg-blue-500 rounded-full"></span>
-                接收訂單通知
-              </h4>
-              
-              <div className="space-y-3">
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <MessageCircle size={18} className="text-green-500" />
-                  </div>
-                  <input 
-                    type="text" 
-                    value={lineId}
-                    onChange={e => setLineId(e.target.value)}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 outline-none"
-                    placeholder="Line ID (選填)"
-                  />
-                </div>
-                
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail size={18} className="text-blue-500" />
-                  </div>
-                  <input 
-                    type="email" 
-                    value={email}
-                    onChange={e => setEmail(e.target.value)}
-                    className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="Email (選填)"
-                  />
-                </div>
-                <p className="text-xs text-gray-500">
-                  * 我們會將訂單明細與結帳資訊發送至您的 Line 或 Email。
-                </p>
-              </div>
-            </div>
+          </div>
+
+          <div className="pt-4 text-center">
+             <p className="text-sm text-gray-400">訂單確認後，廚房將立即開始製作。</p>
           </div>
 
           <button 

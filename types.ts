@@ -35,6 +35,7 @@ export interface Order {
   contactEmail?: string;
   syncedToSheet?: boolean;
   sentEmail?: boolean;
+  sentLine?: boolean;
 }
 
 export interface RawMenuResponse {
@@ -53,8 +54,10 @@ export interface StoreSettings {
   storeName: string;
   ownerEmail: string;
   googleSheetUrl: string;
+  lineToken: string;
   enableEmailNotify: boolean;
   enableSheetSync: boolean;
+  enableLineNotify: boolean;
   username?: string;
   password?: string;
 }

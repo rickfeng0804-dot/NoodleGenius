@@ -23,8 +23,10 @@ function App() {
     storeName: 'NoodleGenius 麵館',
     ownerEmail: '',
     googleSheetUrl: '',
+    lineToken: '',
     enableEmailNotify: false,
     enableSheetSync: false,
+    enableLineNotify: false,
     username: 'Store',
     password: '12345678'
   });
@@ -65,30 +67,28 @@ function App() {
     showNotification("已登出後台系統", "info");
   };
 
-  const handlePlaceOrder = async (items: CartItem[], customerName: string, tableNumber: string, lineId: string, email: string) => {
+  const handlePlaceOrder = async (items: CartItem[], tableNumber: string) => {
     setIsSimulatingSync(true);
     
     // Create Order
     const newOrder: Order = {
       id: Date.now().toString(),
-      customerName,
+      customerName: `Table ${tableNumber}`, // Auto-generated
       tableNumber,
       items,
       totalAmount: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
       status: OrderStatus.PENDING,
       timestamp: Date.now(),
-      contactLineId: lineId,
-      contactEmail: email,
       syncedToSheet: false,
-      sentEmail: false
+      sentEmail: false,
+      sentLine: false
     };
 
-    // Simulate Cloud Sync Delays (Google Sheet / Email)
+    // Simulate Cloud Sync Delays (Google Sheet / Email / Line)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     if (settings.enableSheetSync && settings.googleSheetUrl) {
       newOrder.syncedToSheet = true;
-      // In a real app, we would fetch(settings.googleSheetUrl, { method: 'POST', body: ... })
       console.log(`[Simulation] Writing order ${newOrder.id} to Google Sheet: ${settings.googleSheetUrl}`);
     }
 
@@ -97,12 +97,17 @@ function App() {
       console.log(`[Simulation] Sending notification email to owner: ${settings.ownerEmail}`);
     }
 
+    if (settings.enableLineNotify && settings.lineToken) {
+      newOrder.sentLine = true;
+      console.log(`[Simulation] Sending Line Notify with token: ${settings.lineToken}`);
+    }
+
     setOrders(prev => [...prev, newOrder]);
     setIsSimulatingSync(false);
 
     // Notification Logic
     let msg = `訂單已送出！總金額 $${newOrder.totalAmount}。`;
-    if (settings.enableSheetSync) msg += ` (已同步至 Google Sheet)`;
+    if (settings.enableSheetSync) msg += ` (已同步)`;
     
     showNotification(msg, 'success');
   };
@@ -171,7 +176,7 @@ function App() {
             </div>
           </button>
         </div>
-        <div className="mt-12 text-gray-400 text-xs">System v2.1 • Secure Access</div>
+        <div className="mt-12 text-gray-400 text-xs">System v2.2 • Secure Access</div>
       </div>
     );
   }
@@ -205,7 +210,8 @@ function App() {
               <RefreshCw className="animate-spin text-orange-500 mb-4" size={40} />
               <p className="font-bold text-gray-700">正在傳送訂單...</p>
               {settings.enableSheetSync && <p className="text-xs text-gray-400 mt-2">Syncing to Google Sheets</p>}
-              {settings.enableEmailNotify && <p className="text-xs text-gray-400">Sending Email</p>}
+              {settings.enableEmailNotify && <p className="text-xs text-gray-400">Sending Email to Store</p>}
+              {settings.enableLineNotify && <p className="text-xs text-gray-400">Sending Line Notify to Store</p>}
             </div>
           </div>
         )}
