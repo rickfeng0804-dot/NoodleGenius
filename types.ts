@@ -54,6 +54,7 @@ export interface StoreSettings {
   storeName: string;
   ownerEmail: string;
   googleSheetUrl: string;
+  googleScriptUrl: string;
   lineToken: string;
   enableEmailNotify: boolean;
   enableSheetSync: boolean;

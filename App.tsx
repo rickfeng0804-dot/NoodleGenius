@@ -23,6 +23,7 @@ function App() {
     storeName: 'NoodleGenius 麵館',
     ownerEmail: '',
     googleSheetUrl: '',
+    googleScriptUrl: '',
     lineToken: '',
     enableEmailNotify: false,
     enableSheetSync: false,
@@ -87,9 +88,18 @@ function App() {
     // Simulate Cloud Sync Delays (Google Sheet / Email / Line)
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    if (settings.enableSheetSync && settings.googleSheetUrl) {
+    if (settings.enableSheetSync && settings.googleScriptUrl) {
       newOrder.syncedToSheet = true;
-      console.log(`[Simulation] Writing order ${newOrder.id} to Google Sheet: ${settings.googleSheetUrl}`);
+      // In a real app, we would use:
+      // fetch(settings.googleScriptUrl, { 
+      //   method: 'POST', 
+      //   mode: 'no-cors',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify(newOrder) 
+      // });
+      console.log(`[Simulation] Posting order ${newOrder.id} to Google Script: ${settings.googleScriptUrl}`);
+    } else if (settings.enableSheetSync) {
+      console.warn("[Simulation] Sheet sync enabled but no script URL provided.");
     }
 
     if (settings.enableEmailNotify && settings.ownerEmail) {
@@ -107,7 +117,7 @@ function App() {
 
     // Notification Logic
     let msg = `訂單已送出！總金額 $${newOrder.totalAmount}。`;
-    if (settings.enableSheetSync) msg += ` (已同步)`;
+    if (settings.enableSheetSync && settings.googleScriptUrl) msg += ` (已同步)`;
     
     showNotification(msg, 'success');
   };

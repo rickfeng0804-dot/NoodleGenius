@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { MenuCategory, MenuItem, StoreSettings } from '../types';
-import { Download, Upload, FileSpreadsheet, Trash2, AlertCircle, RefreshCw, Mail, Save, Database, Shield, Eye, EyeOff, MessageCircle } from 'lucide-react';
+import { Download, Upload, FileSpreadsheet, Trash2, AlertCircle, RefreshCw, Mail, Save, Database, Shield, Eye, EyeOff, MessageCircle, Copy, Code } from 'lucide-react';
 
 interface SettingsViewProps {
   menu: MenuCategory[];
@@ -15,6 +15,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ menu, settings, onUp
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
+  const [showScript, setShowScript] = useState(false);
   
   // Local state for form inputs to avoid excessive re-renders on parent
   const [localSettings, setLocalSettings] = useState<StoreSettings>(settings);
@@ -140,6 +141,38 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ menu, settings, onUp
     }
     result.push(cur);
     return result;
+  };
+
+  const GAS_SCRIPT_CODE = `function doPost(e) {
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  var data = JSON.parse(e.postData.contents);
+  
+  // 如果是第一列，自動建立標題
+  if (sheet.getLastRow() === 0) {
+    sheet.appendRow(["時間", "單號", "桌號", "品項內容", "總金額", "狀態"]);
+  }
+  
+  var itemsStr = data.items.map(function(i) { 
+    return i.name + " x" + i.quantity; 
+  }).join(", ");
+  
+  sheet.appendRow([
+    new Date().toLocaleString(),
+    data.id,
+    data.tableNumber,
+    itemsStr,
+    data.totalAmount,
+    data.status
+  ]);
+  
+  return ContentService.createTextOutput(JSON.stringify({"status": "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setSuccessMsg("程式碼已複製！");
+    setTimeout(() => setSuccessMsg(null), 3000);
   };
 
   return (
@@ -278,15 +311,61 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ menu, settings, onUp
                     className="w-5 h-5 text-purple-600 rounded focus:ring-purple-500"
                   />
                 </div>
-                <input 
-                  type="text" 
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
-                  value={localSettings.googleSheetUrl}
-                  disabled={!localSettings.enableSheetSync}
-                  onChange={e => setLocalSettings({...localSettings, googleSheetUrl: e.target.value})}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:bg-gray-100 disabled:text-gray-400"
-                />
-                <p className="text-xs text-gray-500 mt-1">貼上 Google Sheet 網址，系統將自動寫入訂單資料 (模擬)。</p>
+                
+                <div className="space-y-3 mt-3">
+                  {localSettings.enableSheetSync && (
+                     <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+                       <button 
+                        onClick={() => setShowScript(!showScript)}
+                        className="text-blue-600 text-sm font-bold flex items-center gap-1 hover:underline"
+                       >
+                         <Code size={16}/> {showScript ? '隱藏 Apps Script 程式碼' : '顯示 Apps Script 程式碼'}
+                       </button>
+                       
+                       {showScript && (
+                         <div className="mt-2 relative">
+                           <pre className="bg-slate-800 text-slate-100 p-3 rounded-lg text-xs overflow-x-auto whitespace-pre-wrap">
+                             {GAS_SCRIPT_CODE}
+                           </pre>
+                           <button 
+                            onClick={() => copyToClipboard(GAS_SCRIPT_CODE)}
+                            className="absolute top-2 right-2 p-1.5 bg-white/20 hover:bg-white/30 rounded text-white"
+                            title="複製程式碼"
+                           >
+                             <Copy size={14} />
+                           </button>
+                           <p className="text-xs text-blue-700 mt-2">
+                             說明: 請在 Google Sheet 點選「擴充功能」&gt;「Apps Script」，貼上此程式碼，並部署為網頁應用程式 (Web App)，權限設為「任何人」。
+                           </p>
+                         </div>
+                       )}
+                     </div>
+                  )}
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Apps Script 網頁應用程式網址 (Web URL)</label>
+                    <input 
+                      type="text" 
+                      placeholder="https://script.google.com/macros/s/..."
+                      value={localSettings.googleScriptUrl}
+                      disabled={!localSettings.enableSheetSync}
+                      onChange={e => setLocalSettings({...localSettings, googleScriptUrl: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:bg-gray-100 disabled:text-gray-400 text-sm"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-gray-500 mb-1 ml-1">Google Sheet 檢視連結 (僅供參考)</label>
+                    <input 
+                      type="text" 
+                      placeholder="https://docs.google.com/spreadsheets/d/..."
+                      value={localSettings.googleSheetUrl}
+                      disabled={!localSettings.enableSheetSync}
+                      onChange={e => setLocalSettings({...localSettings, googleSheetUrl: e.target.value})}
+                      className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 outline-none disabled:bg-gray-100 disabled:text-gray-400 text-sm"
+                    />
+                  </div>
+                </div>
               </div>
 
               <button 
