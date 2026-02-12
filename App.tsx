@@ -5,7 +5,7 @@ import { KitchenView } from './components/KitchenView';
 import { SettingsView } from './components/SettingsView';
 import { LoginView } from './components/LoginView';
 import { MenuCategory, CartItem, Order, OrderStatus, StoreSettings } from './types';
-import { Utensils, Smartphone, CheckCheck, Settings, ChefHat, Store, User, ArrowLeft, RefreshCw, LogOut } from 'lucide-react';
+import { Utensils, Smartphone, CheckCheck, Settings, ChefHat, Store, User, ArrowLeft, RefreshCw, LogOut, ArrowRight } from 'lucide-react';
 
 // App Modes
 type AppMode = 'PORTAL' | 'CUSTOMER_APP' | 'BUSINESS_APP' | 'LOGIN';
@@ -127,7 +127,7 @@ function App() {
   if (appMode === 'PORTAL') {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-6 animate-fade-in">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10">
           <div className="bg-orange-500 w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg rotate-3">
             <Utensils className="text-white h-10 w-10" />
           </div>
@@ -135,8 +135,8 @@ function App() {
           <p className="text-gray-500">智慧點餐解決方案</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
-          {/* Customer Portal */}
+        <div className="flex flex-col md:flex-row gap-6 w-full max-w-6xl h-auto md:h-96">
+          {/* Start Ordering (80%) */}
           <button 
             onClick={() => {
               if (menu.length === 0) {
@@ -145,18 +145,26 @@ function App() {
                 setAppMode('CUSTOMER_APP');
               }
             }}
-            className="bg-white p-8 rounded-3xl shadow-md border-2 border-transparent hover:border-orange-500 transition-all group text-left flex flex-col h-64 justify-between"
+            className="md:flex-[4] bg-white p-8 md:p-12 rounded-3xl shadow-lg border-2 border-transparent hover:border-orange-500 transition-all group text-left flex flex-col justify-between relative overflow-hidden hover:shadow-xl min-h-[300px]"
           >
-            <div className="w-14 h-14 bg-orange-100 rounded-full flex items-center justify-center group-hover:bg-orange-500 transition-colors">
-              <User className="text-orange-600 group-hover:text-white transition-colors" size={32} />
+            {/* Background Decoration */}
+            <div className="absolute right-[-40px] top-[-40px] bg-orange-50 w-80 h-80 rounded-full opacity-50 group-hover:scale-110 transition-transform duration-500 pointer-events-none"></div>
+            
+            <div className="relative z-10 w-20 h-20 bg-orange-100 rounded-2xl flex items-center justify-center group-hover:bg-orange-500 transition-colors shadow-sm mb-6">
+              <Utensils className="text-orange-600 group-hover:text-white transition-colors" size={40} />
             </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">我是顧客</h2>
-              <p className="text-gray-500">進入點餐頁面，瀏覽菜單並直接下單。</p>
+            
+            <div className="relative z-10">
+              <h2 className="text-5xl font-bold text-gray-800 mb-4 group-hover:text-orange-600 transition-colors">開始點餐</h2>
+              <p className="text-gray-500 text-xl">內用請直接點選此處，瀏覽菜單並下單。</p>
+            </div>
+            
+            <div className="absolute bottom-10 right-10 bg-orange-100 text-orange-600 p-4 rounded-full group-hover:bg-orange-600 group-hover:text-white transition-all shadow-md">
+               <ArrowRight size={32} />
             </div>
           </button>
 
-          {/* Business Portal */}
+          {/* Store Maintenance (20%) */}
           <button 
             onClick={() => {
               if (isAuthenticated) {
@@ -165,18 +173,18 @@ function App() {
                 setAppMode('LOGIN');
               }
             }}
-            className="bg-white p-8 rounded-3xl shadow-md border-2 border-transparent hover:border-blue-600 transition-all group text-left flex flex-col h-64 justify-between"
+            className="md:flex-[1] bg-slate-50 p-6 rounded-3xl shadow-inner border-2 border-transparent hover:border-slate-300 hover:bg-white transition-all group text-center flex flex-col justify-center items-center gap-4 min-h-[150px]"
           >
-            <div className="w-14 h-14 bg-blue-100 rounded-full flex items-center justify-center group-hover:bg-blue-600 transition-colors">
-              <Store className="text-blue-600 group-hover:text-white transition-colors" size={32} />
+            <div className="w-14 h-14 bg-slate-200 rounded-full flex items-center justify-center group-hover:bg-slate-800 transition-colors">
+              <Settings className="text-slate-600 group-hover:text-white transition-colors" size={28} />
             </div>
             <div>
-              <h2 className="text-2xl font-bold text-gray-800 mb-2">我是店家</h2>
-              <p className="text-gray-500">進入管理後台，編輯菜單、查看廚房訂單與設定。</p>
+              <h2 className="text-xl font-bold text-gray-700 group-hover:text-slate-900">店家維護</h2>
+              <p className="text-sm text-gray-400 mt-1">後台管理登入</p>
             </div>
           </button>
         </div>
-        <div className="mt-12 text-gray-400 text-xs">System v2.2 • Secure Access</div>
+        <div className="mt-12 text-gray-400 text-xs">System v2.4 • Secure Access</div>
       </div>
     );
   }
