@@ -17,10 +17,11 @@ export interface CartItem extends MenuItem {
 }
 
 export enum OrderStatus {
-  PENDING = 'PENDING',
-  COOKING = 'COOKING',
-  COMPLETED = 'COMPLETED',
-  SERVED = 'SERVED',
+  PENDING = 'PENDING',   // 顧客已點餐，等待結帳
+  PAID = 'PAID',         // 已結帳，等待製作
+  COOKING = 'COOKING',   // 製作中
+  COMPLETED = 'COMPLETED', // 製作完成
+  SERVED = 'SERVED',     // 已出餐
 }
 
 export interface Order {

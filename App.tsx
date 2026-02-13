@@ -4,12 +4,13 @@ import { OrderingView } from './components/OrderingView';
 import { KitchenView } from './components/KitchenView';
 import { SettingsView } from './components/SettingsView';
 import { LoginView } from './components/LoginView';
+import { CashierView } from './components/CashierView';
 import { MenuCategory, CartItem, Order, OrderStatus, StoreSettings } from './types';
-import { Utensils, Smartphone, CheckCheck, Settings, ChefHat, Store, User, ArrowLeft, RefreshCw, LogOut, ArrowRight } from 'lucide-react';
+import { Utensils, Smartphone, CheckCheck, Settings, ChefHat, Store, User, ArrowLeft, RefreshCw, LogOut, ArrowRight, CreditCard } from 'lucide-react';
 
 // App Modes
 type AppMode = 'PORTAL' | 'CUSTOMER_APP' | 'BUSINESS_APP' | 'LOGIN';
-type BusinessView = 'UPLOAD' | 'DASHBOARD_KITCHEN' | 'DASHBOARD_SETTINGS';
+type BusinessView = 'UPLOAD' | 'DASHBOARD_CASHIER' | 'DASHBOARD_KITCHEN' | 'DASHBOARD_SETTINGS';
 
 function App() {
   // Global State
@@ -44,7 +45,7 @@ function App() {
 
   const handleMenuGenerated = (generatedMenu: MenuCategory[]) => {
     setMenu(generatedMenu);
-    setBusinessView('DASHBOARD_KITCHEN');
+    setBusinessView('DASHBOARD_SETTINGS'); // Go to settings first to check details or go to cashier
     showNotification("菜單生成成功！請前往設定頁面完善商店資訊。");
   };
 
@@ -71,10 +72,10 @@ function App() {
   const handlePlaceOrder = async (items: CartItem[], tableNumber: string) => {
     setIsSimulatingSync(true);
     
-    // Create Order
+    // Create Order - Status is PENDING (Unpaid)
     const newOrder: Order = {
       id: Date.now().toString(),
-      customerName: `Table ${tableNumber}`, // Auto-generated
+      customerName: `Table ${tableNumber}`, 
       tableNumber,
       items,
       totalAmount: items.reduce((sum, item) => sum + item.price * item.quantity, 0),
@@ -85,21 +86,14 @@ function App() {
       sentLine: false
     };
 
-    // Simulate Cloud Sync Delays (Google Sheet / Email / Line)
+    // Note: We don't sync to external services yet? 
+    // Usually sync happens after payment, but here we sync order creation
     await new Promise(resolve => setTimeout(resolve, 1500));
     
+    // For now, let's sync creation so owner knows there is a pending order
     if (settings.enableSheetSync && settings.googleScriptUrl) {
       newOrder.syncedToSheet = true;
-      // In a real app, we would use:
-      // fetch(settings.googleScriptUrl, { 
-      //   method: 'POST', 
-      //   mode: 'no-cors',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(newOrder) 
-      // });
       console.log(`[Simulation] Posting order ${newOrder.id} to Google Script: ${settings.googleScriptUrl}`);
-    } else if (settings.enableSheetSync) {
-      console.warn("[Simulation] Sheet sync enabled but no script URL provided.");
     }
 
     if (settings.enableEmailNotify && settings.ownerEmail) {
@@ -116,8 +110,7 @@ function App() {
     setIsSimulatingSync(false);
 
     // Notification Logic
-    let msg = `訂單已送出！總金額 $${newOrder.totalAmount}。`;
-    if (settings.enableSheetSync && settings.googleScriptUrl) msg += ` (已同步)`;
+    let msg = `訂單已送出！請至櫃檯結帳。總金額 $${newOrder.totalAmount}。`;
     
     showNotification(msg, 'success');
   };
@@ -130,6 +123,11 @@ function App() {
          showNotification(`桌號 ${order.tableNumber} 餐點已完成，系統已自動通知顧客！`, 'info');
       }
     }
+  };
+
+  const handleConfirmPayment = (orderId: string) => {
+    handleUpdateStatus(orderId, OrderStatus.PAID);
+    showNotification("結帳完成！訂單已傳送至廚房。", "success");
   };
 
   // --- Views ---
@@ -194,7 +192,7 @@ function App() {
             </div>
           </button>
         </div>
-        <div className="mt-12 text-gray-400 text-xs">System v2.4 • Secure Access</div>
+        <div className="mt-12 text-gray-400 text-xs">System v2.5 • Secure Access</div>
       </div>
     );
   }
@@ -207,9 +205,9 @@ function App() {
         onLoginSuccess={() => {
           setIsAuthenticated(true);
           setAppMode('BUSINESS_APP');
-          // If menu exists, go to Kitchen, else Upload
+          // If menu exists, default to Cashier view for operations
           if (menu.length > 0 && businessView === 'UPLOAD') {
-             setBusinessView('DASHBOARD_KITCHEN');
+             setBusinessView('DASHBOARD_CASHIER');
           }
           showNotification("登入成功！", "success");
         }}
@@ -271,6 +269,22 @@ function App() {
               {menu.length > 0 && (
                 <>
                   <button
+                    onClick={() => setBusinessView('DASHBOARD_CASHIER')}
+                    className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${
+                      businessView === 'DASHBOARD_CASHIER' 
+                        ? 'bg-slate-700 text-white shadow-inner' 
+                        : 'text-slate-300 hover:bg-slate-700'
+                    }`}
+                  >
+                    <CreditCard size={18} />
+                    <span className="hidden sm:inline">結帳櫃檯</span>
+                    {orders.filter(o => o.status === OrderStatus.PENDING).length > 0 && (
+                      <span className="bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {orders.filter(o => o.status === OrderStatus.PENDING).length}
+                      </span>
+                    )}
+                  </button>
+                  <button
                     onClick={() => setBusinessView('DASHBOARD_KITCHEN')}
                     className={`px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors ${
                       businessView === 'DASHBOARD_KITCHEN' 
@@ -280,9 +294,9 @@ function App() {
                   >
                     <Utensils size={18} />
                     <span className="hidden sm:inline">廚房 KDS</span>
-                    {orders.filter(o => o.status === OrderStatus.PENDING).length > 0 && (
-                      <span className="bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                        {orders.filter(o => o.status === OrderStatus.PENDING).length}
+                    {orders.filter(o => o.status === OrderStatus.PAID).length > 0 && (
+                      <span className="bg-orange-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                        {orders.filter(o => o.status === OrderStatus.PAID).length}
                       </span>
                     )}
                   </button>
@@ -295,7 +309,7 @@ function App() {
                     }`}
                   >
                     <Settings size={18} />
-                    <span className="hidden sm:inline">設定與維護</span>
+                    <span className="hidden sm:inline">設定</span>
                   </button>
                 </>
               )}
@@ -316,6 +330,7 @@ function App() {
 
       <main className="flex-1 max-w-7xl mx-auto w-full">
         {businessView === 'UPLOAD' && <UploadView onMenuGenerated={handleMenuGenerated} />}
+        {businessView === 'DASHBOARD_CASHIER' && <CashierView orders={orders} onConfirmPayment={handleConfirmPayment} />}
         {businessView === 'DASHBOARD_KITCHEN' && <KitchenView orders={orders} onUpdateStatus={handleUpdateStatus} />}
         {businessView === 'DASHBOARD_SETTINGS' && (
           <SettingsView 

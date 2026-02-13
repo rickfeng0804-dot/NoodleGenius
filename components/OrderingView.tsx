@@ -143,18 +143,18 @@ export const OrderingView: React.FC<OrderingViewProps> = ({ menu, onPlaceOrder }
               {category.items.map(item => {
                 const cartQty = cart.find(c => c.id === item.id)?.quantity || 0;
                 return (
-                  <div key={item.id} className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-full">
+                  <div key={item.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col justify-between h-full hover:shadow-md transition-shadow">
                     <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h3 className="font-bold text-lg text-gray-800 line-clamp-2">{item.name}</h3>
-                        <span className="font-bold text-orange-600">${item.price}</span>
+                      <div className="flex justify-between items-start mb-2 gap-2">
+                        <h3 className="font-extrabold text-xl text-gray-900 line-clamp-2 leading-snug">{item.name}</h3>
+                        <span className="font-bold text-lg text-orange-600 whitespace-nowrap">${item.price}</span>
                       </div>
                       {item.description && (
                         <p className="text-gray-500 text-sm mb-3 line-clamp-2">{item.description}</p>
                       )}
                       {item.recommended && (
-                        <div className="inline-flex items-center text-xs font-medium text-yellow-600 bg-yellow-50 px-2 py-1 rounded-md mb-3">
-                          <Star size={12} className="mr-1 fill-yellow-500" />
+                        <div className="inline-flex items-center text-xs font-medium text-yellow-700 bg-yellow-100 px-2 py-1 rounded-md mb-3">
+                          <Star size={12} className="mr-1 fill-yellow-600" />
                           店長推薦
                         </div>
                       )}
